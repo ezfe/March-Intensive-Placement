@@ -1,0 +1,135 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Requests{% endblock %}
+{% block sitecontent %}
+
+<style>
+	@media print {
+		a[href]:after {
+			content: none !important;
+		}
+	}
+</style>
+
+<script>
+	var index = 0;
+
+	function scrollToNext(){
+		var element = $('.not-signed-up-warning-locator:eq(' + index + ')');
+		var count = $('.not-signed-up-warning-locator').length;
+		$('html, body').animate({
+			scrollTop: element.offset().top
+		}, 2000);
+
+		index++;
+		index %= count;
+	}
+
+	function verifyLogin() {
+		$.get('/api/verify_login', function(data){
+			if (data && data.success) {
+				return true;
+			} else {
+				alert(data.message);
+				return false;
+			}
+		});
+	}
+</script>
+
+{% for item in printData %}
+<div class="panel panel-default">
+	<div class="panel-heading">
+		{% if item.student.has_course %}
+		<span class="label label-success" style="float:right;font-size:14pt;">Signed Up</span>
+		{% else %}
+		<span class="not-signed-up-warning-locator"></span>
+		{% if item.student.enrollment_status == "MISSING-AM" %}
+		<span class="label label-warning" style="float:right;font-size:14pt;">Missing AM</span>
+		{% elif item.student.enrollment_status == "MISSING-PM" %}
+		<span class="label label-warning" style="float:right;font-size:14pt;">Missing PM</span>
+		{% endif %}
+		{% endif %}
+
+		<a target="_" href="/admin-django/People/student/{{item.student.pk}}">
+			<h3 class="panel-title">{{item.student.last_name}}, {{item.student.first_name}}</h3>
+		</a>
+		{{item.student.grade}}th Grade –
+		{% if item.student.gender == "M" %}Male{%else%}Female{% endif %}
+		{% if item.student.student_leader != "NO"%} - Student Leader ({{ item.student.student_leader}}){%endif%}
+		{% if item.student.ford_sayre != "NO"%} – Ford Sayre{%endif%}
+		{% if item.student.hartford_tech != "NO"%} – Hartford Tech ({{ item.student.hartford_tech }}){%endif%}
+		{% if item.student.no_participate_previous %} – <span style="color:red;">NP</span>{%endif%}
+	</div>
+	<div class="panel-body">
+		<table class="table table-bordered">
+			{% if item.requests %}
+			<tr>
+				<th>Full Day</th>
+				<th>Morning</th>
+				<th>Afternoon</th>
+			</tr>
+			{% for request in item.requests %}
+			<tr>
+				<td {% if not request.FULL%}style="color:gray"{%endif%}>
+					{{request.FULL}}
+					{% if request.FULL%}
+					{% if request.FULL in item.student.placements %}
+					<i style="float:right;color:green" class="fa fa-check-square"></i>
+					{% else %}
+					<i style="float:right;" class="fa fa-plus-square place-button" course="{{request.FULL.pk}}" student="{{ item.student.pk}}"></i>
+					{% endif %}
+					{% endif %}
+				</td>
+				<td {% if not request.AM%}style="color:gray"{%endif%}>
+					{{request.AM}}
+					{% if request.AM%}
+					{% if request.AM in item.student.placements %}
+					<i style="float:right;color:green" class="fa fa-check-square"></i>
+					{% else %}
+					<i style="float:right;" class="fa fa-plus-square place-button" course="{{request.AM.pk}}" student="{{ item.student.pk}}"></i>
+					{% endif %}
+					{% endif %}
+				</td>
+				<td {% if not request.PM%}style="color:gray"{%endif%}>
+					{{request.PM}}
+					{% if request.PM%}
+					{% if request.PM in item.student.placements %}
+					<i style="float:right;color:green;" class="fa fa-check-square"></i>
+					{% else %}
+					<i style="float:right;" class="fa fa-plus-square place-button" course="{{request.PM.pk}}" student="{{ item.student.pk}}"></i>
+					{% endif %}
+					{% endif %}
+				</td>
+			</tr>
+			{%endfor%}
+			{% else %}
+			This student has not signed up yet
+			{% endif %}
+		</table>
+	</div>
+</div>
+{% endfor %}
+
+<script>
+	$('.place-button').click(function(){
+		button = $(this);
+		var student_pk = button.attr('student');
+		var course_pk = button.attr('course');
+		button.removeClass('fa-plus-square').addClass('fa-circle-o-notch fa-spin');
+		$.get('/api/student/' + student_pk + '/enroll/' + course_pk, function(data) {
+			if (data.success) {
+				button.removeClass('fa-circle-o-notch fa-spin place-button').addClass('fa-check-square remove-button').css('color','green');
+			} else {
+				button.removeClass('fa-circle-o-notch fa-spin place-button').addClass('fa-exclamation-triangle').css('color','red');
+				if (data && data.message) {
+					alert(data.message)
+				} else {
+					verifyLogin();
+				}
+			}
+		});
+	});
+</script>
+
+{% endblock %}

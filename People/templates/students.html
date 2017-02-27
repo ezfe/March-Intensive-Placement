@@ -1,0 +1,10 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Courses{% endblock %}
+{% block sitecontent %}
+
+{% for student in students %}
+	{% include 'student.html' %}
+{% endfor %}
+
+{% endblock %}

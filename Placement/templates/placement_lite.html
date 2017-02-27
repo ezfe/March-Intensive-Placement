@@ -1,0 +1,53 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Placement{% endblock %}
+{% block sitecontent %}
+
+{% for c in courses %}
+<div class="panel panel-default" id="{{c.pk}}">
+	<div class="panel-heading">
+		<h3 class="panel-title">{{c.display_name}}</h3></a>
+	</div>
+	<div class="panel-body">
+		<a class="btn btn-info" href="detail/{{c.pk}}">View student listing</a> –
+		<a class="btn btn-warning" href="/admin-django/Courses/course/{{c.pk}}">Edit course</a> –
+		<a class="btn btn-primary email-class" course="{{c.pk}}">Email</a>
+	</div>
+</div>
+{% endfor %}
+
+<script type="text/javascript">
+	function verifyLogin() {
+		$.get('/api/verify_login', function(data){
+			if (data && data.success) {
+				return true;
+			} else {
+				alert(data.message);
+				return false;
+			}
+		});
+	}
+
+	$('.email-class').click(function(){
+		var button = $(this);
+		var course_pk = $(this).attr('course');
+		button.attr('disabled','true');
+		button.html("Emailing...");
+		if (confirm("Are you sure you want to email the students in this class, telling them they are in this class?")) {
+			$.get('/api/course/' + course_pk + '/email', function(data){
+				if (data && data.message) {
+					button.html("Sent");
+					alert(data.message);
+				} else {
+					verifyLogin();
+				}
+			});
+			//
+		} else {
+			button.html("Email");
+			button.removeAttr('disabled');
+		}
+	});
+</script>
+
+{% endblock %}

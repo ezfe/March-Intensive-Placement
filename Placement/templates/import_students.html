@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Import{% endblock %}
+{% block sitecontent %}
+
+<div class="row">
+    <div class="col-md-12">
+        <form method="post">
+            {% csrf_token %}
+            first_name,last_name,grade,...
+            <textarea name="student_data" style="width:100%;height:400px;"></textarea>
+            <br><br>
+            <input type="submit" value="Submit">
+        </form>
+    </div>
+</div>
+
+{% endblock %}

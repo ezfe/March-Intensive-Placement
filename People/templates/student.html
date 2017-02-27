@@ -1,0 +1,54 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="well">
+            <style>
+                .tr-label {
+                    text-align: right;
+                    padding-right: 15px;
+                }
+            </style>
+            <h3>{{ student.full_name }}</h3>
+            {% if detail %}
+            <a href="/admin-django/People/student/{{ student.student_id }}/" class="btn btn-warning btn-xs">Edit</a><br><br>
+            <table class="table table-bordered">
+                <tr>
+                    <td width="150px" class="tr-label">Grade</td><td>{{ student.grade }}</td>
+                </tr>
+                <tr>
+                    <td class="tr-label">Ford Sayre</td><td>{{ student.ford_sayre }}</td>
+                </tr>
+                <tr>
+                    <td class="tr-label">Hartford Tech</td><td>{{ student.hartford_tech }}</td>
+                </tr>
+                <tr>
+                    <td class="tr-label">Ignore</td><td>{{ student.should_ignore }}</td>
+                </tr>
+                <tr>
+                    <td class="tr-label">NP Last Year</td><td>{{ student.no_participate_previous }}</td>
+                </tr>
+                <tr><td colspan="2"></td></tr>
+                <tr><th>Courses...</th></tr>
+                {% for course in student.placements %}
+                <tr>
+                    <td>
+                        <a href="/admin/view/detail/{{course.pk}}?student={{student.pk}}">{{course.display_name}}</a>
+                    </td>
+                    <td>
+                        <a href="/api/student/{{student.pk}}/unenroll/{{course.pk}}" target="_">Remove</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td>
+                        <select>
+                            <option>--</option>
+                        </select>
+                    </td>
+                </tr>
+            </table>
+            {% else %}
+            <a href="/students/{{ student.student_id }}" class="btn btn-success">View</a> – <a href="/admin-django/People/student/{{ student.student_id }}/" class="btn btn-warning">Edit</a>
+            {% endif %}
+        </div>
+    </div>
+</div>

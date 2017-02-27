@@ -1,0 +1,18 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Success{% endblock %}
+{% block sitecontent %}
+
+<div class="row">
+	<div class="col-md-12">
+	{% if student.has_requests %}
+	<h2><i class="fa fa-check-circle" style="color:green;"></i> {{ student.full_name }} is registered.</h2>
+	{% else %}
+	<h2><i class="fa fa-times-circle" style="color:red;"></i> {{ student.full_name }} couldn't be registered.</h2><br><br>Please try again later, or refer to the help button at the top of the page.
+	{% endif %}
+	</div>
+</div>
+
+<a href="/">Register again</a>
+
+{% endblock %}

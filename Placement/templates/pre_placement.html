@@ -1,0 +1,48 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Placement{% endblock %}
+{% block sitecontent %}
+
+<div class="hidden-md hidden-lg text-danger" style="text-align:center;">
+    <i class="fa fa-exclamation-triangle"></i> This page is not designed for mobile
+</div>
+
+<div class="row">
+    <div class="col-md-3">
+        <a href="verify/" class="btn btn-block btn-default">Verify Students <i class="fa fa-pencil"></i></a>
+    </div>
+    <div class="col-md-3 col-md-offset-3">
+        <a href="/admin-django" target="_blank" class="btn btn-block btn-warning">Django Admin <i class="fa fa-cog"></i></a>
+    </div>
+    <div class="col-md-3">
+        <a href="view/" class="btn btn-block btn-info">Rosters <i class="fa fa-info-circle"></i></a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3 col-md-offset-6">
+        <a href="/students/" target="_blank" class="btn btn-block btn-warning">Manage Student <i class="fa fa-cog"></i></a>
+    </div>
+    <div class="col-md-3">
+        <a href="view_requests/" class="btn btn-block btn-info">Requests <i class="fa fa-info-circle"></i></a>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-3 col-md-offset-9">
+        <a href="view_no_requests/" class="btn btn-block btn-info">View Non-requests <i class="fa fa-info-circle"></i></a>
+    </div>
+</div>
+
+<script>
+	$('#reset_placements').on('click',function(){
+		if (confirm("Are you sure you want to reset all placement data?")) {
+			$.get('/api/reset_placements',function(data){
+				alert(data.message);
+				location.reload();
+			});
+		} else {
+			alert('Ok, nothing will be deleted');
+		}
+	});
+</script>
+
+{% endblock %}

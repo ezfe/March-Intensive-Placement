@@ -1,0 +1,4 @@
+__pycache__/
+mip/database.json
+*.pyc
+logs/gunicorn_supervisor.log

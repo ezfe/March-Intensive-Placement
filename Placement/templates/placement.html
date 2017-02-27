@@ -1,0 +1,141 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Placement{% endblock %}
+{% block sitecontent %}
+
+<style>
+	.action-row:hover {
+		/*background-color: #DFF0D8;*/
+	}
+
+	@media print {
+		a[href]:after {
+			content: none !important;
+		}
+
+		.course-full-label {
+			display: none;
+		}
+
+		.hide-print {
+			display: none;
+		}
+
+		.panel {
+			border: none;
+			padding:0px;
+		}
+	}
+</style>
+
+{% for c in courses %}
+<a href="/admin/view#{{c.pk}}" class="hide-print"><i class="fa fa-arrow-circle-left"></i> Go Back</a><br><br>
+<div class="panel panel-default">
+	<div class="panel-heading">
+		{% if c.is_full %}
+		<span class="course-full-label label label-danger" style="float:right;font-size:14pt;">Course is Full</span>
+		{% endif %}
+
+		<a href="/admin-django/Courses/course/{{c.pk}}"><h3 class="panel-title">{{c.display_name}}</h3></a>
+		&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Type: <span class="label label-info">
+			{% if c.course_type == "FULL" %}
+				Full Day
+			{% elif c.course_type == "AM" %}
+				Morning / AM
+			{% else %}
+				Afternoon / PM
+			{% endif %}
+		</span><br>
+		Enrolled: <span class="label label-info">{{c.enrolled_students_count}}/{{c.max_students}}</span><br>
+		<span class="hide-print">&nbsp;Gender: <span class="label label-primary">{{c.number_female}}F/{{c.number_male}}M</span></span><br>
+		&nbsp;&nbsp;&nbsp;Room: <span class="label label-primary">{{c.room}}</span>
+	</div>
+	<div class="panel-body">
+		<table class="table table-bordered course-table" course="{{c.pk}}">
+			<tr><th>Name</th><th>Gender</th><th>Grade</th><th class="hide-print">Actions</th></tr>
+			{% for s in c.student_list %}
+			<tr class="student-row">
+				<td><a href="/admin-django/People/student/{{s.pk}}">{{s.full_name}}</a></td>
+				<td>{{s.gender}}</td>
+				<td>{{s.grade}}</td>
+				<td class="hide-print"><button class="remove-student btn btn-danger btn-xs" student="{{s.pk}}" course="{{c.pk}}">Remove</button></td>
+			</tr>
+			{% endfor %}
+			{% if c.student_list|length == 0 %}
+			<tr class="course-empty-row-placeholder" course="{{c.pk}}">
+				<td colspan="4">No students enrolled in this course</td>
+			</tr>
+			{% endif %}
+
+			<tr class="action-row hide-print">
+				<td colspan="4">
+					<input type="text" course="{{c.pk}}" class="add-student-first-name-field" placeholder="First Name">
+					<input type="text" course="{{c.pk}}" class="add-student-last-name-field" placeholder="Last Name">
+					<button class="add-student btn btn-success btn-xs" course="{{c.pk}}">Add student</button>
+				</td>
+			</tr>
+		</table>
+	</div>
+</div>
+{% endfor %}
+
+<script type="text/javascript">
+	function universalProcess(data) {
+		if (data.success === true) {
+
+			location.reload();
+
+		} else {
+			if (data && data.message) {
+				alert(data.message);
+			} else {
+				verifyLogin();
+			}
+		}
+
+	}
+
+	function verifyLogin() {
+		$.get('/api/verify_login', function(data){
+			if (data && data.success) {
+				return true;
+			} else {
+				alert(data.message);
+				return false;
+			}
+		});
+	}
+
+	$('.remove-student').click(function(){
+		var student_pk = $(this).attr('student');
+		var course_pk = $(this).attr('course');
+		$.get('/api/student/' + student_pk + '/unenroll/' + course_pk, function(data){
+			universalProcess(data);
+		});
+	});
+
+	$('.add-student').click(function(){
+		var course_pk = $(this).attr('course');
+		var postObject = {
+			"first_name": $('.add-student-first-name-field[course=' + course_pk +']').val(),
+			"last_name": $('.add-student-last-name-field[course=' + course_pk +']').val()
+		};
+		$.post('/api/students/lookup', postObject, function(data) {
+			if (data.success === true) {
+				var student_pk = data.object;
+
+				$.get('/api/student/' + student_pk + '/enroll/' + course_pk, function(data){
+					universalProcess(data);
+				});
+			} else {
+				if (data && data.message) {
+					alert(data.message);
+				} else {
+					verifyLogin();
+				}
+			}
+		});
+	});
+</script>
+
+{% endblock %}

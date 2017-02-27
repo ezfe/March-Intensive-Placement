@@ -1,0 +1,17 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Placement{% endblock %}
+{% block sitecontent %}
+
+<table class="table">
+	<tr><th>Common Ground</th><th>Name</th><th>Email</th></tr>
+	{% for s in students %}
+	{% if not s.has_requests and not s.has_course and not s.should_ignore %}
+	<tr>
+		<td>{{s.common_ground}}</td><td>{{s.full_name}}</td><td><a href="mailto:{{s.email}}">{{s.email}}</a></td>
+	</tr>
+	{% endif %}
+	{% endfor %}
+</table>
+
+{% endblock %}

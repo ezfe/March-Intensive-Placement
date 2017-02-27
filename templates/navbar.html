@@ -1,0 +1,50 @@
+{% block navbar %}
+{% load firstof from future %}
+
+<nav class="navbar navbar-inverse">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" href="/">Register</a>
+		</div>
+
+		<div class="collapse navbar-collapse" id="navbar-collapse">
+			<ul class="nav navbar-nav">
+                {% if user.is_active and user.is_staff %}
+                <li><a href="/admin/">Admin</a></li>
+                {% endif %}
+                <li><a href="http://example.com">March Intensive Website</a></li>
+                <li><a href="#" onclick="alert('Contact details should go here! Somebody clearly didn\'t do their job and forgot to put them here.')">Help</a></li>
+			</ul>
+
+			<ul class="nav navbar-nav navbar-right">
+				{% if user.is_active and user.is_staff %}
+				<li class="dropdown">
+					<a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">{% firstof user.get_short_name user.get_username %} <span class="caret"></span></a>
+					<ul class="dropdown-menu" role="menu">
+						{% if user.has_usable_password %}
+						<li><a href="{% url 'admin:password_change' %}">Change password</a></li>
+						{% endif %}
+						<li class="divider"></li>
+						<li><a href="{% url 'admin:logout' %}">Logout</a></li>
+					</ul>
+				</li>
+				{% else %}
+				<li><a id="admin-login-button" href="/admin"><i class="fa fa-gear"></i></a></li>
+				<style>
+					#admin-login-button:hover::after {
+						content:" Admin Log In"
+					}
+				</style>
+				{% endif %}
+			</ul>
+		</div>
+	</div>
+</nav>
+
+{% endblock %}

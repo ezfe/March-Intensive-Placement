@@ -1,0 +1,50 @@
+{% extends 'layout.html' %}
+{% load firstof from future %}
+
+{% block pagetitle %}{% if title %}{{ title }}{% else %}Admin{% endif %}{% endblock %}
+
+{% block sitecontent %}
+
+{% load admin_static %}{% load firstof from future %}
+
+{% block extrastyle %}{% endblock %}
+
+<script type="text/javascript">window.__admin_media_prefix__ = "{% filter escapejs %}{% static "admin/" %}{% endfilter %}";</script>
+<script type="text/javascript">window.__admin_utc_offset__ = "{% filter escapejs %}{% now "Z" %}{% endfilter %}";</script>
+
+{% block extrahead %}{% endblock %}
+{% block blockbots %}<meta name="robots" content="NONE,NOARCHIVE" />{% endblock %}
+{% load i18n %}
+
+<div class="{% if is_popup %}popup {% endif %}{% block bodyclass %}{% endblock %}">
+  {% if not is_popup %}
+  {% block breadcrumbs %}
+  <div class="breadcrumbs">
+    <ol class="breadcrumb">
+      <li><a href="{% url 'admin:index' %}">Home</a></li>
+      {% if title %}<li class="active">{{ title }}{% endif %}
+    </ol>
+  </div>
+  {% endblock %}
+  {% endif %}
+
+  {% block messages %}
+  {% if messages %}
+  <ul class="messagelist">{% for message in messages %}
+    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message|capfirst }}</li>
+    {% endfor %}</ul>
+    {% endif %}
+    {% endblock messages %}
+
+    <!-- Content -->
+    <div id="content" class="{% block coltype %}colM{% endblock %}">
+      {% block pretitle %}{% endblock %}
+      {% block content_title %}{% if title %}<h1>{{ title }}</h1>{% endif %}{% endblock %}
+      {% block content %}
+      {% block object-tools %}{% endblock %}
+      {{ content }}
+      {% endblock %}
+      <br class="clear" />
+    </div>
+  </div>
+  {% endblock %}

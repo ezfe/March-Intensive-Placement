@@ -1,0 +1,137 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Placement{% endblock %}
+{% block sitecontent %}
+
+	<div class="panel panel-default">
+		<div class="panel-heading" role="tab" id="headingOne">
+			<h4 class="panel-title">
+				Incomplete Students {% if not allow_place %}<i class="text-danger fa fa-exclamation-circle"></i>{%endif%}
+			</h4>
+		</div>
+		<div id="collapseOne" class="panel-collapse collapse in" role="tabpanel">
+			<div class="panel-body">
+				<table id="missing_students_table" class="table table-bordered" {% if missing_students|length == 0 %}style="display:none;"{% endif %}>
+					<thead>
+						<tr>
+							<th colspan="3">Name</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for student in missing_students %}
+						<tr>
+							<td>
+								{{student}}
+							</td>
+							<td style="white-space:nowrap;width:1%">
+								<a class="btn btn-success" href="/register?student={{student.pk}}">Add Requests</a>
+							</td>
+							<td style="white-space:nowrap;width:1%">
+								<button class="btn btn-danger ignore_student_button" ignored="NO" url="/api/student/{{student.pk}}/ignore/true" student="{{student.pk}}">Ignore This Student</button>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				<span id="missing_students_table_empty_message" {% if not missing_students|length == 0 %}style="display:none;"{% endif %}><i class="text-success fa fa-check-circle"></i> No students have incomplete registrations. Check the <a onclick="$('#collapse2_title').click();">Ignored Students</a> section to review which students have been marked as not needing placements.</span>
+			</div>
+		</div>
+	</div>
+	<div class="panel panel-default">
+		<div class="panel-heading" role="tab" id="headingTwo">
+			<h4 class="panel-title">
+				Ignored Students
+			</h4>
+		</div>
+		<div>
+			<div class="panel-body">
+				<table id="ignored_students_table" class="table table-bordered" {% if ignored_students|length == 0 %}style="display:none;"{% endif %}>
+					<thead>
+						<tr>
+							<th colspan="3">Name</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for student in ignored_students %}
+						<tr>
+							<td>
+								{{student}}
+							</td>
+							<td style="white-space:nowrap;width:1%">
+								<a class="btn btn-success" href="/register?student={{student.pk}}">Add Requests</a>
+							</td>
+							<td style="white-space:nowrap;width:1%">
+								<button class="btn btn-danger ignore_student_button" ignored="YES" url="/api/student/{{student.pk}}/ignore/false/" student="{{student.pk}}">Stop Ignoring This Student</button>
+							</td>
+						</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+				<span id="ignored_students_table_empty_message" {% if not ignored_students|length == 0 %}style="display:none;"{% endif %}><i class="text-success fa fa-check-circle"></i> No students are marked as ignored.<br></span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="col-md-4 col-md-offset-4" style="text-align:center;">
+		{% if allow_place %}
+		<a class="btn btn-success btn-block" href="/admin">Return to Placement...</a>
+		<span class="text-warning">Note: There are some ignored students</span>
+		{% else %}
+		<button disabled class="btn btn-danger btn-block">Return to Placement...</button>
+		<span class="text-danger">Please deal with the problems before you can return!</span>
+		{% endif %}
+	</div>
+</div>
+
+<script type="text/javascript">
+	$('#collapse1_title').on('click',function(){
+		localStorage.setItem('accordionPage','page1');
+	});
+	$('#collapse2_title').on('click',function(){
+		localStorage.setItem('accordionPage','page2');
+	});
+	$('.ignore_student_button').on('click',function(){
+		var button = $(this);
+		$.get(button.attr('url'),function(response) {
+			if (response.success === true) {
+				if (response && response.revert_url) {
+					button.attr('url', response.revert_url);
+					if (button.attr('ignored') == "YES") {
+						button.html('Ignore This Student');
+						button.attr('ignored', "NO");
+						button.parent().parent().detach().appendTo('#missing_students_table').children().filter('tbody');
+						$('#missing_students_table').show();
+						$('#missing_students_table_empty_message').hide();
+						if ($('#ignored_students_table').children().filter('tbody').children().length == 0) {
+							$('#ignored_students_table').hide();
+							$('#ignored_students_table_empty_message').show();
+						}
+					} else {
+						button.html('Stop Ignoring This Student');
+						button.attr('ignored', "YES");
+						button.parent().parent().detach().appendTo('#ignored_students_table').children().filter('tbody');
+						$('#ignored_students_table').show();
+						$('#ignored_students_table_empty_message').hide();
+						if ($('#missing_students_table').children().filter('tbody').children().length == 0) {
+							$('#missing_students_table').hide();
+							$('#missing_students_table_empty_message').show();
+						}
+					}
+				} else {
+					location.reload();
+				}
+			} else {
+				alert(response.message);
+			}
+		});
+	});
+	$(document).ready(function(){
+		if (localStorage.getItem('accordionPage') == 'page2') {
+			$('#collapse2_title').click();
+		}
+	});
+</script>
+
+{% endblock %}

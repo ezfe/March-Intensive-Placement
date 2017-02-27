@@ -1,0 +1,180 @@
+{% extends 'layout.html' %}
+
+{% block pagetitle %}Placement{% endblock %}
+{% block navbar %}{% endblock %}
+{% block sitecontent %}
+
+<style>
+	#action_button {
+		font-size: 24px;
+	}
+	#action_button:hover {
+		text-decoration: none;
+	}
+    .container {
+        margin: 0px;
+        padding: 0px;
+    }
+</style>
+
+<!-- <a href="/admin">Go back</a> -->
+
+<div class="row">
+	<div class="col-md-4 col-md-offset-4">
+		<select id="action-select" class="form-control">
+			<option disabled selected value="null">Choose action...</option>
+			<option value="rst_plc">Reset placements</option>
+			<option value="rst_req">Reset requests</option>
+			<option value="add_req">Add requests</option>
+			<option value="add_plc">Add placements</option>
+			<option value="mdf_std">Modify student</option>
+            <option value="mdf_crs">Modify course</option>
+		</select>
+	</div>
+</div>
+<div class="row" id="student-choose-container" style="display:none;">
+    <div class="col-md-4 col-md-offset-4">
+		<select id="student-id-tc" class="form-control">
+			<option disabled selected value="null">Choose a student...</option>
+			{% for s in students %}
+			<option value="{{s.student_id}}">{{s}}</option>
+			{% endfor %}
+		</select>
+	</div>
+</div>
+<div class="row" id="course-choose-container" style="display:none;">
+	<div class="col-md-4 col-md-offset-4">
+		<select id="course-id-tc" class="form-control">
+			<option disabled selected value="null">Choose a course...</option>
+			{% for c in courses %}
+			<option value="{{c.course_id}}">{{c}}</option>
+			{% endfor %}
+		</select>
+	</div>
+</div>
+<div class="row" id="alert-div-container" style="display:none;">
+	<div class="col-md-4 col-md-offset-4">
+        <div class="alert alert-danger alert-div">
+            nothing here?
+        </div>
+	</div>
+</div>
+<div class="row" id="action-button-container" style="display:none;">
+	<div class="col-md-4 col-md-offset-4">
+		<button href="#" id="action-button" class="btn btn-block btn-success"><i class="fa fa-arrow-circle-right"></i> Go</button>
+	</div>
+</div>
+
+<script>
+    var alerts = {
+        "add_plc": "The system will not prevent invalid placements using this method.<br>For example, you could place a student in all the courses and it wouldn't care.",
+        "add_req": "If you add a morning/evening class without adding the corresponding class the request may be ignored unless the student is a ford sayre/hartford tech participant."
+    };
+
+	function verifyDropdowns() {
+		var actionDropdownSuccess = false;
+		var courseDropdownSuccess = false;
+		var studentDropdownSuccess = false;
+
+		if ($('#action-select').val() != null) {
+			actionDropdownSuccess = true
+		}
+
+		if (!$('#course-choose-container').is(':hidden')) {
+			if ($('#course-id-tc').val() != null) {
+				courseDropdownSuccess = true
+			} else {
+				courseDropdownSuccess = false
+			}
+		} else {
+			courseDropdownSuccess = true
+		}
+
+		if (!$('#student-choose-container').is(':hidden')) {
+			if ($('#student-id-tc').val() != null) {
+				studentDropdownSuccess = true
+			} else {
+				studentDropdownSuccess = false
+			}
+		} else {
+			studentDropdownSuccess = true
+		}
+
+		return {"action":actionDropdownSuccess,"course":courseDropdownSuccess,"student":studentDropdownSuccess,"overall":(actionDropdownSuccess&&courseDropdownSuccess&&studentDropdownSuccess)};
+	}
+	$(document).on('change',function(){
+        $("html, body").animate({ scrollTop: $(document).height() }, "slow");
+		if (['add_req', 'add_plc', 'mdf_crs'].indexOf($('#action-select').val()) != -1) {
+			$('#course-choose-container').show();
+		} else {
+			$('#course-choose-container').hide().val('null');
+		}
+		if (['rst_plc', 'rst_req', 'add_req', 'add_plc', 'mdf_std'].indexOf($('#action-select').val()) != -1) {
+			$('#student-choose-container').show();
+		} else {
+			$('#student-choose-container').hide().val('null');
+		}
+
+		if (verifyDropdowns().overall) {
+			$('#action-button-container').show();
+		} else {
+			$('#action-button-container').hide();
+		}
+
+        if (alerts[$('#action-select').val()]) {
+            $('#alert-div-container').show();
+            $('.alert-div').html(alerts[$('#action-select').val()]);
+        } else {
+            $('#alert-div-container').hide();
+        }
+	});
+	$(document).on('click','#action-button',function(){
+		var action = $('#action-select').val();
+		if (verifyDropdowns().overall) {
+
+			//Define the data in variables so that I don't have to use jQuery selectors repeatedly
+			//They are bulky and hard to type
+			var student = {
+				"ID": $('#student-id-tc').val(),
+				"name": $('#student-id-tc').find(":selected").text()
+			};
+			var course = {
+				"ID": $('#course-id-tc').val(),
+				"name": $('#course-id-tc').find(":selected").text()
+			};
+
+			if (action == 'rst_plc') {
+				if (confirm('Reset ' + student.name + '\'s placements?\n\nThis will withdraw them from all courses.')) {
+					$.get('/api/student/' + student.ID + '/reset/placements', function(data) {
+						alert(data.message);
+					});
+				}
+			} else if (action == 'rst_req') {
+				if (confirm('Reset ' + $('#student-id-tc').find(":selected").text() + '\'s requests?\n\nThis will not affect any courses they might be enrolled in, however it will affect future placements.')) {
+					$.get('/api/student/' + $('#student-id-tc').val() + '/reset/requests', function(data) {
+						alert(data.message);
+					});
+				}
+			} else if (action == 'add_req') {
+					$.get('/api/student/' + student.ID + '/request/' + course.ID, function(data) {
+						alert(data.message);
+					});
+            } else if (action == 'mdf_std') {
+                window.open('/admin-django/People/student/' + student.ID + '/', '_blank');
+            } else if (action == 'mdf_crs') {
+                window.open('/admin-django/Courses/course/' + course.ID + '/', '_blank');
+            } else if (action == 'list_students') {
+                window.open('/students/', '_blank');
+            } else if (action == 'list_courses') {
+                window.open('/courses/', '_blank');
+            } else {
+				alert('No action is defined for ' + action);
+			}
+		} else {
+			alert('Uh ohh, something is wrong.\n\nPrinted verification requirement results to console.');
+			console.log(verifyDropdowns());
+		}
+	});
+</script>
+
+{% endblock %}
